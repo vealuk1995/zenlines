@@ -10,7 +10,7 @@
  *  - Save / export
  *  - Telegram sharing
  */
-const SHARE_API_URL = 'https://colorbook-share.vealuk1995.workers.dev/'; // ← ваш URL
+const SHARE_API_URL = 'https://colorbook-share.vealuk1995.workers.dev'; // ← ваш URL
 const Coloring = (() => {
 
   // ── Constants ──────────────────────────────────────────────────────────────
@@ -651,7 +651,7 @@ function _onTouchEnd(e) {
 
 // Вставьте URL вашего Cloudflare Worker после деплоя.
 // Пока пусто — будет показываться модальное окно.
-const SHARE_API_URL = 'https://colorbook-share.vealuk1995.workers.dev/';
+const SHARE_API_URL = 'https://colorbook-share.vealuk1995.workers.dev';
 
 function _share() {
   const merged = document.createElement('canvas');
@@ -664,8 +664,12 @@ function _share() {
   mCtx.drawImage(baseCanvas, 0, 0);
 
   const dataURL = merged.toDataURL('image/png');
-  const chatId  = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-
+const tg     = window.Telegram?.WebApp;
+const chatId = tg?.initDataUnsafe?.user?.id
+            || tg?.initData && new URLSearchParams(tg.initData).get('user')
+               ? JSON.parse(new URLSearchParams(tg?.initData).get('user') || '{}').id
+               : null;
+  
   if (chatId && SHARE_API_URL) {
     _shareViaBot(dataURL, chatId);
   } else {
