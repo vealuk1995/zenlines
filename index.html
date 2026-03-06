@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#F7F3EE" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1A1612" media="(prefers-color-scheme: dark)" />
+  <title>Color Book – Anti-Stress Coloring</title>
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Root app container -->
+  <div id="app"></div>
+
+  <!--
+    ══════════════════════════════════════════════════════════
+    JavaScript modules — ORDER MATTERS:
+    storage  → palette  → zoom  → gallery  → coloring  → app
+    ══════════════════════════════════════════════════════════
+  -->
+
+  <!-- LocalStorage persistence -->
+  <script src="storage.js"></script>
+
+  <!-- Color palette manager -->
+  <script src="palette.js"></script>
+
+  <!-- Touch zoom & pan -->
+  <script src="zoom.js"></script>
+
+  <!-- Gallery screen -->
+  <script src="gallery.js"></script>
+
+  <!-- Coloring engine -->
+  <script src="coloring.js"></script>
+
+  <!-- App controller (bootstraps everything) -->
+  <script src="app.js"></script>
+
+</body>
+</html>
