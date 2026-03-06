@@ -645,8 +645,6 @@ function _onTouchEnd(e) {
     _showToast('🗑 Canvas reset.');
   }
 
-  // ── Share ──────────────────────────────────────────────────────────────────
-
 // ── Share ──────────────────────────────────────────────────────────────────
 
 // Вставьте URL вашего Cloudflare Worker после деплоя.
@@ -685,31 +683,36 @@ function _share() {
 function _shareViaBot(dataURL, chatId) {
   _showToast('📤 Отправляем...');
 
-  fetch(SHARE_API_URL, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id:      chatId,
-      image_base64: dataURL,
-      title:        artwork.title,
-    }),
-  })
-  .then(r => {
-    alert('Status: ' + r.status);  // ← добавить
-    return r.json();
-  })
-  .then(result => {
-    alert('Response: ' + JSON.stringify(result));  // ← добавить
-    if (result.ok) {
-      _showToast('✅ Фото отправлено в Telegram!');
-    } else {
-      _showToast('❌ Ошибка: ' + result.error);
-    }
-  })
-  .catch(err => {
-    alert('Network error: ' + err.message);  // ← добавить
-    _showToast('❌ Нет соединения');
+  const payload = JSON.stringify({
+    chat_id:      chatId,
+    image_base64: dataURL,
+    title:        artwork.title,
   });
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', SHARE_API_URL, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+
+  xhr.onload = function() {
+    try {
+      const result = JSON.parse(xhr.responseText);
+      alert('Status: ' + xhr.status + '\nResponse: ' + xhr.responseText);
+      if (result.ok) {
+        _showToast('✅ Фото отправлено в Telegram!');
+      } else {
+        _showToast('❌ Ошибка: ' + (result.error || 'unknown'));
+      }
+    } catch (e) {
+      alert('Parse error: ' + xhr.responseText);
+    }
+  };
+
+  xhr.onerror = function() {
+    alert('XHR error: ' + xhr.status + ' ' + xhr.statusText);
+    _showToast('❌ Нет соединения');
+  };
+
+  xhr.send(payload);
 }
 
 function _showShareModal(dataURL, blob) {
