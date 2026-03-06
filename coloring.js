@@ -664,11 +664,14 @@ function _share() {
   mCtx.drawImage(baseCanvas, 0, 0);
 
   const dataURL = merged.toDataURL('image/png');
-const tg     = window.Telegram?.WebApp;
-const chatId = tg?.initDataUnsafe?.user?.id
-            || tg?.initData && new URLSearchParams(tg.initData).get('user')
-               ? JSON.parse(new URLSearchParams(tg?.initData).get('user') || '{}').id
-               : null;
+const tg = window.Telegram?.WebApp;
+let chatId = null;
+try {
+  const user = tg?.initDataUnsafe?.user
+            || JSON.parse(new URLSearchParams(tg?.initData || '').get('user') || 'null');
+  chatId = user?.id || null;
+} catch (e) {}
+  console.log('[Share] chat_id:', chatId, '| initData:', tg?.initData?.slice(0, 80));
   
   if (chatId && SHARE_API_URL) {
     _shareViaBot(dataURL, chatId);
