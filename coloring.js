@@ -10,7 +10,7 @@
  *  - Save / export
  *  - Telegram sharing
  */
-
+const SHARE_API_URL = 'https://colorbook-share.vealuk1995.workers.dev/'; // ← ваш URL
 const Coloring = (() => {
 
   // ── Constants ──────────────────────────────────────────────────────────────
@@ -658,26 +658,42 @@ function _share() {
   mCtx.drawImage(baseCanvas, 0, 0);
 
   const dataURL = merged.toDataURL('image/png');
+  const chatId  = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
 
-  merged.toBlob(blob => {
-    // Пробуем Web Share API — работает в Chrome Android, Safari iOS
-    if (navigator.share && navigator.canShare) {
-      const file = new File([blob], `${artwork.title}.png`, { type: 'image/png' });
-      if (navigator.canShare({ files: [file] })) {
-        navigator.share({
-          title: artwork.title,
-          files: [file],
-        }).catch(err => {
-          if (err.name !== 'AbortError') _showShareModal(dataURL, blob);
-        });
-        return;
-      }
-    }
-    // Fallback — модальное окно
-    _showShareModal(dataURL, blob);
-  }, 'image/png');
+  if (chatId && SHARE_API_URL) {
+    _shareViaBot(dataURL, chatId);
+  } else {
+    // Fallback если не в Telegram или Worker не настроен
+    merged.toBlob(blob => _showShareModal(dataURL, blob), 'image/png');
+  }
 }
 
+function _shareViaBot(dataURL, chatId) {
+  _showToast('📤 Отправляем...');
+
+  fetch(SHARE_API_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id:      chatId,
+      image_base64: dataURL,
+      title:        artwork.title,
+    }),
+  })
+  .then(r => r.json())
+  .then(result => {
+    if (result.ok) {
+      _showToast('✅ Фото отправлено в Telegram!');
+    } else {
+      console.error('Share error:', result.error);
+      _showToast('❌ Ошибка: ' + (result.error || 'попробуйте ещё раз'));
+    }
+  })
+  .catch(() => {
+    _showToast('❌ Нет соединения');
+  });
+}
+  
 function _showShareModal(dataURL, blob) {
   const modal = document.createElement('div');
   modal.className = 'share-modal';
@@ -686,38 +702,21 @@ function _showShareModal(dataURL, blob) {
   inner.className = 'share-modal-inner';
 
   inner.innerHTML = `
-    <h3>Share Your Artwork</h3>
+    <h3>Сохранить работу</h3>
     <img src="${dataURL}" alt="Your coloring"
          style="max-width:100%;border-radius:8px;margin:12px 0;display:block"/>
-    <p class="share-hint">Press and hold the image to save it.</p>
+    <p class="share-hint">Зажмите изображение чтобы сохранить его в галерею.</p>
   `;
-
-  const dlBtn = document.createElement('a');
-  dlBtn.className = 'share-download-btn';
-  dlBtn.textContent = '⬇ Download PNG';
-
-  if (blob) {
-    const blobURL = URL.createObjectURL(blob);
-    dlBtn.href     = blobURL;
-    dlBtn.download = `${artwork.title}.png`;
-    dlBtn.addEventListener('click', () => {
-      setTimeout(() => URL.revokeObjectURL(blobURL), 1000);
-    });
-  } else {
-    dlBtn.href     = dataURL;
-    dlBtn.download = `${artwork.title}.png`;
-  }
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'share-close-btn';
-  closeBtn.textContent = 'Close';
+  closeBtn.textContent = 'Закрыть';
   closeBtn.addEventListener('click', () => document.body.removeChild(modal));
 
   modal.addEventListener('click', e => {
     if (e.target === modal) document.body.removeChild(modal);
   });
 
-  inner.appendChild(dlBtn);
   inner.appendChild(closeBtn);
   modal.appendChild(inner);
   document.body.appendChild(modal);
