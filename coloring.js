@@ -652,37 +652,33 @@ function _onTouchEnd(e) {
 // Вставьте URL вашего Cloudflare Worker после деплоя.
 // Пока пусто — будет показываться модальное окно.
 function _share() {
-  // Экспортируем в уменьшенном размере чтобы не превысить лимит Worker
-  const exportSize = Math.min(canvasW, 800);
+  // Экспортируем не более 600px — иначе base64 слишком большой для отправки
+  const MAX_EXPORT = 600;
+  const exportW = Math.min(canvasW, MAX_EXPORT);
+  const exportH = Math.min(canvasH, MAX_EXPORT);
+
   const merged = document.createElement('canvas');
-  merged.width  = exportSize;
-  merged.height = exportSize;
+  merged.width  = exportW;
+  merged.height = exportH;
   const mCtx = merged.getContext('2d');
   mCtx.fillStyle = '#FFFFFF';
-  mCtx.fillRect(0, 0, exportSize, exportSize);
-  mCtx.drawImage(paintCanvas, 0, 0, exportSize, exportSize);
-  mCtx.drawImage(baseCanvas,  0, 0, exportSize, exportSize);
-  // ... остальное без изменений
+  mCtx.fillRect(0, 0, exportW, exportH);
+  mCtx.drawImage(paintCanvas, 0, 0, exportW, exportH);
+  mCtx.drawImage(baseCanvas,  0, 0, exportW, exportH);
 
-  const dataURL = merged.toDataURL('image/png');
-const tg = window.Telegram?.WebApp;
-let chatId = null;
-try {
-  const user = tg?.initDataUnsafe?.user
-            || JSON.parse(new URLSearchParams(tg?.initData || '').get('user') || 'null');
-  chatId = user?.id || null;
-} catch (e) {}
-    alert(
-    'initData: ' + (tg?.initData ? tg.initData.slice(0, 60) : 'EMPTY') + '\n' +
-    'user.id: ' + (tg?.initDataUnsafe?.user?.id || 'NOT FOUND') + '\n' +
-    'SHARE_API_URL: ' + (SHARE_API_URL || 'EMPTY')
-  );
-  console.log('[Share] chat_id:', chatId, '| initData:', tg?.initData?.slice(0, 80));
-  
+  const dataURL = merged.toDataURL('image/jpeg', 0.85); // JPEG вместо PNG — в 3-4 раза меньше
+  const tg = window.Telegram?.WebApp;
+  let chatId = null;
+  try {
+    const user = tg?.initDataUnsafe?.user
+              || JSON.parse(new URLSearchParams(tg?.initData || '').get('user') || 'null');
+    chatId = user?.id || null;
+  } catch (e) {}
+
   if (chatId && SHARE_API_URL) {
     _shareViaBot(dataURL, chatId);
   } else {
-    merged.toBlob(blob => _showShareModal(dataURL, blob), 'image/png');
+    merged.toBlob(blob => _showShareModal(dataURL, blob), 'image/jpeg', 0.85);
   }
 }
 
