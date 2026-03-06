@@ -671,6 +671,11 @@ try {
             || JSON.parse(new URLSearchParams(tg?.initData || '').get('user') || 'null');
   chatId = user?.id || null;
 } catch (e) {}
+    alert(
+    'initData: ' + (tg?.initData ? tg.initData.slice(0, 60) : 'EMPTY') + '\n' +
+    'user.id: ' + (tg?.initDataUnsafe?.user?.id || 'NOT FOUND') + '\n' +
+    'SHARE_API_URL: ' + (SHARE_API_URL || 'EMPTY')
+  );
   console.log('[Share] chat_id:', chatId, '| initData:', tg?.initData?.slice(0, 80));
   
   if (chatId && SHARE_API_URL) {
