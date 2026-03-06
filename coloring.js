@@ -651,17 +651,18 @@ function _onTouchEnd(e) {
 
 // Вставьте URL вашего Cloudflare Worker после деплоя.
 // Пока пусто — будет показываться модальное окно.
-const SHARE_API_URL = 'https://colorbook-share.vealuk1995.workers.dev';
-
 function _share() {
+  // Экспортируем в уменьшенном размере чтобы не превысить лимит Worker
+  const exportSize = Math.min(canvasW, 800);
   const merged = document.createElement('canvas');
-  merged.width  = canvasW;
-  merged.height = canvasH;
+  merged.width  = exportSize;
+  merged.height = exportSize;
   const mCtx = merged.getContext('2d');
   mCtx.fillStyle = '#FFFFFF';
-  mCtx.fillRect(0, 0, canvasW, canvasH);
-  mCtx.drawImage(paintCanvas, 0, 0);
-  mCtx.drawImage(baseCanvas, 0, 0);
+  mCtx.fillRect(0, 0, exportSize, exportSize);
+  mCtx.drawImage(paintCanvas, 0, 0, exportSize, exportSize);
+  mCtx.drawImage(baseCanvas,  0, 0, exportSize, exportSize);
+  // ... остальное без изменений
 
   const dataURL = merged.toDataURL('image/png');
 const tg = window.Telegram?.WebApp;
