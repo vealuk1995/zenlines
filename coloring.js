@@ -698,15 +698,20 @@ function _shareViaBot(dataURL, chatId) {
       title:        artwork.title,
     }),
   })
-  .then(r => r.json())
+  .then(r => {
+    alert('Status: ' + r.status);  // ← добавить
+    return r.json();
+  })
   .then(result => {
+    alert('Response: ' + JSON.stringify(result));  // ← добавить
     if (result.ok) {
       _showToast('✅ Фото отправлено в Telegram!');
     } else {
-      _showToast('❌ Ошибка отправки');
+      _showToast('❌ Ошибка: ' + result.error);
     }
   })
-  .catch(() => {
+  .catch(err => {
+    alert('Network error: ' + err.message);  // ← добавить
     _showToast('❌ Нет соединения');
   });
 }
