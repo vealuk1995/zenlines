@@ -647,6 +647,12 @@ function _onTouchEnd(e) {
 
   // ── Share ──────────────────────────────────────────────────────────────────
 
+// ── Share ──────────────────────────────────────────────────────────────────
+
+// Вставьте URL вашего Cloudflare Worker после деплоя.
+// Пока пусто — будет показываться модальное окно.
+const SHARE_API_URL = 'https://colorbook-share.vealuk1995.workers.dev/';
+
 function _share() {
   const merged = document.createElement('canvas');
   merged.width  = canvasW;
@@ -663,7 +669,6 @@ function _share() {
   if (chatId && SHARE_API_URL) {
     _shareViaBot(dataURL, chatId);
   } else {
-    // Fallback если не в Telegram или Worker не настроен
     merged.toBlob(blob => _showShareModal(dataURL, blob), 'image/png');
   }
 }
@@ -685,15 +690,14 @@ function _shareViaBot(dataURL, chatId) {
     if (result.ok) {
       _showToast('✅ Фото отправлено в Telegram!');
     } else {
-      console.error('Share error:', result.error);
-      _showToast('❌ Ошибка: ' + (result.error || 'попробуйте ещё раз'));
+      _showToast('❌ Ошибка отправки');
     }
   })
   .catch(() => {
     _showToast('❌ Нет соединения');
   });
 }
-  
+
 function _showShareModal(dataURL, blob) {
   const modal = document.createElement('div');
   modal.className = 'share-modal';
